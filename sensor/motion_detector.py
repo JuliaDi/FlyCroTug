@@ -31,7 +31,7 @@ fourcc = cv2.VideoWriter_fourcc(*'DIVX')
 
 #loop over the frames of the video
 is_begin = True
-while vs.isOpened():
+while True:
     # grab the current frame and initialize the occupied/unoccupied
     # text
     frame = vs.read()
@@ -44,14 +44,15 @@ while vs.isOpened():
         break
 
     # resize the frame, convert it to grayscale, and blur it
-    frame = imutils.resize(frame, height=450, width=800)
+    # use INTER_NEAREST flat for Pi Zero, INTER_AREA default is fine on Pi and computer
+    frame = imutils.resize(frame, height=450, width=800, inter=cv2.INTER_NEAREST)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     gray = cv2.GaussianBlur(gray, (21, 21), 0)
     # if the first frame is None, initialize it
     if firstFrame is None:
         firstFrame = gray
         continue
-  
+
     # compute the absolute difference between the current frame and
     # first frame
     frameDelta = cv2.absdiff(firstFrame, gray)
@@ -64,7 +65,7 @@ while vs.isOpened():
     cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
         cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
-
+    
     # loop over the contours
     for c in cnts:
         # if the contour is too small, ignore it
@@ -98,7 +99,7 @@ while vs.isOpened():
         out = cv2.VideoWriter('output.avi', fourcc, 30, (w, h), True)
         print(out.isOpened()) # To check that you opened VideoWriter
         is_begin = False
-
+    
     out.write(frame)
 
 # cleanup the camera and close any open windows
