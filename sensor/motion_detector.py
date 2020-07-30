@@ -26,11 +26,12 @@ else:
     firstFrame = None
 
 # for screen capture, define codec and VideoWriter object
-fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-out = cv2.VideoWriter('output.avi', fourcc, 33, (450,800),isColor=False)
+fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+#out = cv2.VideoWriter('output.avi', fourcc, 30, (450,800),isColor=True)
 
 #loop over the frames of the video
-while True:
+is_begin = True
+while vs.isOpened():
     # grab the current frame and initialize the occupied/unoccupied
     # text
     frame = vs.read()
@@ -43,7 +44,7 @@ while True:
         break
 
     # resize the frame, convert it to grayscale, and blur it
-    frame = imutils.resize(frame, width=800)
+    frame = imutils.resize(frame, height=450, width=800)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     gray = cv2.GaussianBlur(gray, (21, 21), 0)
     # if the first frame is None, initialize it
@@ -83,19 +84,22 @@ while True:
         (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
     
     # show the frame and record if the user presses a key
-    cv2.imshow("Raw Feed", frame)
     cv2.imshow("Threshold", thresh)
     cv2.imshow("Frame Delta", frameDelta)
+    cv2.imshow("Video", frame)
     key = cv2.waitKey(1) & 0xFF
     # if the `q` key is pressed, break from the loop
     if key == ord("q"):
         break
 
-    #output = np.zeros((650,800,3), dtype="uint8")
-    #output[0:650, 0:800] = frame
-    #gray = cv2.cvtColor(gray, cv2.COLOR_RGB2BGR)
-    print(gray.shape)
-    out.write(gray.astype("uint8"))
+    if is_begin:
+        # Right values of high and width
+        h, w, _ = frame.shape
+        out = cv2.VideoWriter('output.avi', fourcc, 30, (w, h), True)
+        print(out.isOpened()) # To check that you opened VideoWriter
+        is_begin = False
+
+    out.write(frame)
 
 # cleanup the camera and close any open windows
 vs.stop() if args.get("video", None) is None else vs.release()
